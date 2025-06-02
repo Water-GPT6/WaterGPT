@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梯田智慧灌溉系统 - WaterGPT</title>
+    <style>
+        :root {
+            --primary: #2c6e49;
+            --secondary: #4c956c;
+            --accent: #fefee3;
+            --light: #d8f3dc;
+            --dark: #1b4332;
+            --warning: #e63946;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f7f4, #e3f2e8);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .logo-icon {
+            font-size: 2.2rem;
+            background: var(--accent);
+            color: var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .header-water {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 119, 182, 0.1), transparent);
+            z-index: 1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-title {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            font-size: 1.6rem;
+            color: var(--secondary);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(76, 149, 108, 0.2);
+            background: white;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(44, 110, 73, 0.25);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(44, 110, 73, 0.35);
+        }
+        
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+        
+        .status-card {
+            background: linear-gradient(135deg, rgba(232, 245, 233, 0.9), rgba(200, 230, 201, 0.9));
+            border-left: 5px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            z-index: 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .status-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .device-container {
+            background: rgba(249, 249, 249, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .device-title {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .device-visual {
+            height: 200px;
+            background: linear-gradient(to bottom, #caf0f8, #90e0ef, #00b4d8);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .water-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 119, 182, 0.7);
+            transition: height 1.5s ease;
+        }
+        
+        .sensor {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ff9e00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            box-shadow: 0 0 10px rgba(255, 158, 0, 0.5);
+            z-index: 2;
+        }
+        
+        .sensor-top {
+            top: 20px;
+            right: 40%;
+        }
+        
+        .sensor-bottom {
+            bottom: 20px;
+            left: 40%;
+        }
+        
+        .valve {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #e63946;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.5s ease;
+            z-index: 2;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        .inlet-valve {
+            top: 20px;
+            left: 20px;
+        }
+        
+        .outlet-valve {
+            bottom: 20px;
+            right: 20px;
+        }
+        
+        .valve.active {
+            background: #2a9d8f;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(42, 157, 143, 0.6);
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .recommendation {
+            background: rgba(227, 242, 253, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #2196f3;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .recommendation-title {
+            color: #0d47a1;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .recommendation-content {
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+        
+        .highlight {
+            background: var(--accent);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .grid-full {
+            grid-column: 1 / -1;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            background: rgba(224, 242, 241, 0.8);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .tab:hover {
+            background: rgba(200, 230, 201, 0.9);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 8px rgba(44, 110, 73, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, var(--dark), #133d2d);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            font-size: 1.05rem;
+        }
+        
+        .water-animation {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(to bottom, rgba(0, 119, 182, 0.8), rgba(0, 119, 182, 0.4));
+            animation: waterFlow 1.5s infinite linear;
+        }
+        
+        @keyframes waterFlow {
+            0% {
+                transform: translateY(0);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-5px);
+                opacity: 0.9;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 0.8;
+            }
+        }
+        
+        .irrigation-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: irrigationFlow 2s infinite linear;
+            top: 0;
+            left: -100%;
+        }
+        
+        @keyframes irrigationFlow {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
+        .system-animation {
+            display: inline-block;
+            animation: systemPulse 2s infinite;
+        }
+        
+        @keyframes systemPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .irrigation-progress {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 2px 5px rgba(76, 149, 108, 0.3);
+        }
+        
+        .flow-rate {
+            background: rgba(227, 242, 253, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+            color: var(--dark);
+            text-align: center;
+            font-size: 1.05rem;
+        }
+        
+        .flow-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .flow-input-group input {
+            flex: 1;
+        }
+        
+        .flow-input-group span {
+            font-weight: 600;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-water"></div>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <h1>梯田智慧灌溉系统 - WaterGPT</h1>
+            </div>
+            <div class="header-info">
+                <p>云南红河哈尼梯田 · 精准水层控制 · 智能灌溉</p>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-cloud-sun-rain"></i> 气象数据输入</h2>
+            
+            <div class="input-group">
+                <label for="growth-stage">水稻生育期</label>
+                <select id="growth-stage">
+                    <option value="returning">返青期 (5-7cm)</option>
+                    <option value="tillering">分蘖期 (3-5cm)</option>
+                    <option value="jointing">拔节期 (5-7cm)</option>
+                    <option value="heading">孕穗开花期 (6cm)</option>
+                    <option value="milking">乳熟期 (3cm)</option>
+                    <option value="ripening">黄熟期 (落干)</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="current-water">当前水层深度 (cm)</label>
+                <input type="number" id="current-water" min="0" max="20" step="0.1" value="4.5">
+            </div>
+            
+            <div class="input-group">
+                <label for="temperature">平均气温 (°C)</label>
+                <input type="number" id="temperature" min="0" max="40" step="0.1" value="22.5">
+            </div>
+            
+            <div class="input-group">
+                <label for="humidity">平均湿度 (%)</label>
+                <input type="number" id="humidity" min="0" max="100" step="1" value="75">
+            </div>
+            
+            <div class="input-group">
+                <label for="precipitation">降水量 (mm)</label>
+                <input type="number" id="precipitation" min="0" max="100" step="0.1" value="5.2">
+            </div>
+            
+            <div class="input-group">
+                <label for="wind-speed">平均风速 (m/s)</label>
+                <input type="number" id="wind-speed" min="0" max="20" step="0.1" value="1.8">
+            </div>
+            
+            <div class="input-group">
+                <label for="sunshine">日照时数 (小时)</label>
+                <input type="number" id="sunshine" min="0" max="24" step="0.1" value="6.5">
+            </div>
+            
+            <div class="input-group">
+                <label for="field-area">梯田面积 (m²)</label>
+                <input type="number" id="field-area" min="1" step="1" value="1000">
+            </div>
+            
+            <div class="input-group">
+                <label for="flow-rate">水流速度 (m/s)</label>
+                <div class="flow-input-group">
+                    <input type="number" id="flow-rate" min="0.1" max="10" step="0.1" value="2.5">
+                    <span>m/s</span>
+                </div>
+            </div>
+            
+            <button class="btn" id="calculate-btn">
+                <i class="fas fa-calculator"></i> 计算灌溉方案
+            </button>
+            
+            <div class="irrigation-progress" id="progress-container" style="display: none;">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="flow-rate" id="flow-rate-info" style="display: none;">
+                当前水流速: <span id="flow-rate-value">2.5</span> m/s | 预计完成时间: <span id="time-remaining">0</span>秒
+            </div>
+        </div>
+        
+        <div class="card status-card">
+            <h2 class="card-title"><i class="fas fa-chart-line"></i> 系统状态</h2>
+            
+            <div class="status-item">
+                <span class="status-label">目标水层深度：</span>
+                <span class="status-value" id="target-water">5.0 cm</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">水层状态：</span>
+                <span class="status-value" id="water-status">正常</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">灌溉需求：</span>
+                <span class="status-value" id="irrigation-need">0.5 cm</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">蒸发量估算：</span>
+                <span class="status-value" id="evaporation">2.3 mm/天</span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">系统运行状态：</span>
+                <span class="status-value" id="system-status">待机中</span>
+            </div>
+            
+            <div class="device-container">
+                <h3 class="device-title">WaterGPT 装置状态</h3>
+                <div class="device-visual">
+                    <div class="water-level" id="water-level" style="height: 45%;">
+                        <div class="water-animation"></div>
+                        <div class="irrigation-animation" id="irrigation-flow" style="display: none;"></div>
+                    </div>
+                    <div class="sensor sensor-top"><i class="fas fa-wifi"></i></div>
+                    <div class="sensor sensor-bottom"><i class="fas fa-wave-square"></i></div>
+                    <div class="valve inlet-valve"><i class="fas fa-faucet"></i></div>
+                    <div class="valve outlet-valve"><i class="fas fa-water"></i></div>
+                </div>
+                <div id="device-status">水位传感器运行正常 | 进水阀关闭 | 排水阀关闭</div>
+            </div>
+        </div>
+        
+        <div class="card grid-full">
+            <h2 class="card-title"><i class="fas fa-lightbulb"></i> 灌溉决策建议</h2>
+            
+            <div class="recommendation">
+                <h3 class="recommendation-title"><i class="fas fa-info-circle"></i> 当前建议</h3>
+                <div class="recommendation-content" id="recommendation">
+                    根据当前气象数据和水层状态，系统建议：<span class="highlight">无需立即灌溉</span>。当前水层处于目标范围内，请保持监测。
+                    预计未来24小时蒸发量约为 <span class="highlight">2.3mm</span>，建议在明日上午重新评估灌溉需求。
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="water-trend">水层变化趋势</div>
+                <div class="tab" data-tab="irrigation-plan">灌溉计划</div>
+                <div class="tab" data-tab="system-info">系统信息</div>
+            </div>
+            
+            <div class="tab-content active" id="water-trend">
+                <div class="chart-container">
+                    <canvas id="water-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="irrigation-plan">
+                <h3>优化灌溉计划</h3>
+                <p>基于当前生育期和气象预测，系统生成的未来7天灌溉计划：</p>
+                <ul style="margin: 15px 0 15px 30px;">
+                    <li>今日：维持当前水层</li>
+                    <li>第2天：补充灌溉 0.8cm</li>
+                    <li>第3天：补充灌溉 0.5cm</li>
+                    <li>第4天：无灌溉（预计有降水）</li>
+                    <li>第5天：补充灌溉 1.2cm</li>
+                    <li>第6天：维持当前水层</li>
+                    <li>第7天：补充灌溉 0.7cm</li>
+                </ul>
+                <p>此计划基于ARIMA气象预测模型和历史数据分析，可节约用水约 <span class="highlight">25%</span> 同时保证水稻生长需求。</p>
+            </div>
+            
+            <div class="tab-content" id="system-info">
+                <h3>WaterGPT 系统介绍</h3>
+                <p>WaterGPT 是专为梯田设计的智慧灌溉系统，具有以下特点：</p>
+                <ul style="margin: 15px 0 15px 30px;">
+                    <li>实时监测梯田水层变化（精度 ±2mm）</li>
+                    <li>基于模糊PID控制算法的精准灌溉</li>
+                    <li>气象数据集成与预测功能</li>
+                    <li>水稻生育期自适应调节</li>
+                    <li>太阳能供电系统</li>
+                </ul>
+                <p>系统将云南红河哈尼梯田454公顷试验田部署，预计实现水资源节约 <span class="highlight">30%</span>，水稻增产 <span class="highlight">12%</span>。</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>WaterGPT——梯田智慧灌溉系统  @2025 | 云南红河哈尼梯田农业文化遗产保护项目</p>
+        <p>基于水层控制的稻作梯田智慧灌溉装置</p>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化图表
+            const ctx = document.getElementById('water-chart').getContext('2d');
+            const waterChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['6:00', '9:00', '12:00', '15:00', '18:00', '21:00', '24:00'],
+                    datasets: [{
+                        label: '水层深度 (cm)',
+                        data: [4.2, 4.1, 4.0, 4.3, 4.5, 4.5, 4.4],
+                        borderColor: '#2a9d8f',
+                        backgroundColor: 'rgba(42, 157, 143, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }, {
+                        label: '目标水层',
+                        data: [5, 5, 5, 5, 5, 5, 5],
+                        borderColor: '#e63946',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 3,
+                            max: 7,
+                            title: {
+                                display: true,
+                                text: '水层深度 (cm)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '时间'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: '24小时水层变化趋势'
+                        }
+                    }
+                }
+            });
+            
+            // 标签切换功能
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有活动标签
+                    document.querySelectorAll('.tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    // 隐藏所有内容
+                    document.querySelectorAll('.tab-content').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    
+                    // 激活当前标签
+                    tab.classList.add('active');
+                    // 显示对应内容
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 计算按钮事件
+            document.getElementById('calculate-btn').addEventListener('click', calculateIrrigation);
+            
+            // 初始计算一次
+            calculateIrrigation();
+            
+            function calculateIrrigation() {
+                const btn = document.getElementById('calculate-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 计算中...';
+                
+                // 获取输入值
+                const currentWater = parseFloat(document.getElementById('current-water').value);
+                const temperature = parseFloat(document.getElementById('temperature').value);
+                const humidity = parseFloat(document.getElementById('humidity').value);
+                const precipitation = parseFloat(document.getElementById('precipitation').value);
+                const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+                const sunshine = parseFloat(document.getElementById('sunshine').value);
+                const growthStage = document.getElementById('growth-stage').value;
+                const fieldArea = parseFloat(document.getElementById('field-area').value);
+                const flowRate = parseFloat(document.getElementById('flow-rate').value);
+                
+                // 根据生育期确定目标水层（基于论文中的决策逻辑）
+                let targetWater, minWater, maxWater;
+                switch(growthStage) {
+                    case 'returning':  // 返青期
+                        targetWater = 6;
+                        minWater = 5.5;
+                        maxWater = 6.5;
+                        break;
+                    case 'tillering':  // 分蘖期
+                        targetWater = 4;
+                        minWater = 3.5;
+                        maxWater = 4.5;
+                        break;
+                    case 'jointing':   // 拔节期
+                        targetWater = 6;
+                        minWater = 5.5;
+                        maxWater = 6.5;
+                        break;
+                    case 'heading':    // 孕穗开花期
+                        targetWater = 6;
+                        minWater = 5.8;
+                        maxWater = 6.2;
+                        break;
+                    case 'milking':    // 乳熟期
+                        targetWater = 3;
+                        minWater = 2.8;
+                        maxWater = 3.2;
+                        break;
+                    case 'ripening':   // 黄熟期
+                        targetWater = 0.2;
+                        minWater = 0;
+                        maxWater = 0.5;
+                        break;
+                    default:
+                        targetWater = 5;
+                        minWater = 4.5;
+                        maxWater = 5.5;
+                }
+                
+                // 计算蒸发量 (基于论文的蒸发模型)
+                const evaporation = (0.48 * temperature + 0.18 * windSpeed - 0.12 * humidity + 0.25 * sunshine + 1.2).toFixed(1);
+                
+                // 计算水层需求
+                let irrigationNeed = 0;
+                let waterStatus = "正常";
+                let systemStatus = "待机中";
+                
+                if (currentWater < minWater) {
+                    irrigationNeed = targetWater - currentWater;
+                    waterStatus = "过低";
+                    systemStatus = "准备灌溉";
+                } else if (currentWater > maxWater) {
+                    irrigationNeed = currentWater - targetWater;
+                    waterStatus = "过高";
+                    systemStatus = "准备排水";
+                } else {
+                    waterStatus = "正常";
+                    systemStatus = "监测中";
+                }
+                
+                // 更新UI
+                document.getElementById('target-water').textContent = `${minWater.toFixed(1)}-${maxWater.toFixed(1)} cm (目标: ${targetWater} cm)`;
+                document.getElementById('water-status').textContent = waterStatus;
+                document.getElementById('irrigation-need').textContent = 
+                    irrigationNeed > 0 ? `${irrigationNeed.toFixed(1)} cm` : "无";
+                document.getElementById('evaporation').textContent = `${evaporation} mm/天`;
+                document.getElementById('system-status').innerHTML = `<span class="system-animation">${systemStatus}</span>`;
+                
+                // 更新水位可视化
+                const waterLevel = document.getElementById('water-level');
+                const waterPercent = Math.min(100, Math.max(5, (currentWater / 10) * 100));
+                waterLevel.style.height = `${waterPercent}%`;
+                
+                // 更新阀门状态
+                const inletValve = document.querySelector('.inlet-valve');
+                const outletValve = document.querySelector('.outlet-valve');
+                const irrigationFlow = document.getElementById('irrigation-flow');
+                
+                if (irrigationNeed > 0 && currentWater < minWater) {
+                    inletValve.classList.add('active');
+                    outletValve.classList.remove('active');
+                    irrigationFlow.style.display = 'block';
+                    document.getElementById('device-status').textContent = 
+                        "水位传感器运行正常 | 进水阀开启 | 排水阀关闭";
+                } else if (irrigationNeed > 0 && currentWater > maxWater) {
+                    inletValve.classList.remove('active');
+                    outletValve.classList.add('active');
+                    irrigationFlow.style.display = 'block';
+                    document.getElementById('device-status').textContent = 
+                        "水位传感器运行正常 | 进水阀关闭 | 排水阀开启";
+                } else {
+                    inletValve.classList.remove('active');
+                    outletValve.classList.remove('active');
+                    irrigationFlow.style.display = 'none';
+                    document.getElementById('device-status').textContent = 
+                        "水位传感器运行正常 | 进水阀关闭 | 排水阀关闭";
+                }
+                
+                // 基于论文的决策逻辑生成建议
+                let recommendation = "";
+                const flowRateElement = document.getElementById('flow-rate-value');
+                flowRateElement.textContent = flowRate;
+                
+                if (irrigationNeed > 0) {
+                    if (currentWater < minWater) {
+                        // 计算灌溉所需时间（基于流速和面积）
+                        const requiredWater = irrigationNeed / 100; // cm to m
+                        const waterVolume = requiredWater * fieldArea; // m³
+                        const pipeArea = 0.05; // 管道横截面积 m²
+                        const flowVolume = flowRate * pipeArea; // m³/s
+                        const timeRequired = Math.round(waterVolume / flowVolume);
+                        
+                        recommendation = `根据水稻生育期(${getGrowthStageName(growthStage)})和气象数据，系统建议：<span class="highlight">立即灌溉 ${irrigationNeed.toFixed(1)} cm</span>。`;
+                        recommendation += `当前水层低于目标范围${minWater.toFixed(1)}-${maxWater.toFixed(1)}cm，需要补充水量以满足水稻生长需求。`;
+                        recommendation += `使用流速${flowRate} m/s的灌溉系统，预计需要<span class="highlight">${timeRequired}秒</span>完成灌溉。`;
+                        
+                        // 显示进度条和时间
+                        document.getElementById('progress-container').style.display = 'block';
+                        document.getElementById('flow-rate-info').style.display = 'block';
+                        document.getElementById('time-remaining').textContent = timeRequired;
+                        
+                        // 模拟灌溉过程
+                        simulateIrrigation(currentWater, currentWater + irrigationNeed, timeRequired, flowRate);
+                        
+                    } else {
+                        recommendation = `根据水稻生育期(${getGrowthStageName(growthStage)})和气象数据，系统建议：<span class="highlight">立即排水 ${irrigationNeed.toFixed(1)} cm</span>。`;
+                        recommendation += `当前水层高于目标范围${minWater.toFixed(1)}-${maxWater.toFixed(1)}cm，过多的水分可能影响水稻根系发育。`;
+                        recommendation += `系统将启动排水程序，使用流速${flowRate} m/s的排水系统。`;
+                        
+                        // 模拟排水过程
+                        document.getElementById('progress-container').style.display = 'block';
+                        document.getElementById('flow-rate-info').style.display = 'block';
+                        const timeRequired = Math.round(irrigationNeed * 20 * (2.5 / flowRate)); // 基于流速调整时间
+                        document.getElementById('time-remaining').textContent = timeRequired;
+                        simulateIrrigation(currentWater, currentWater - irrigationNeed, timeRequired, flowRate);
+                    }
+                } else {
+                    recommendation = `根据水稻生育期(${getGrowthStageName(growthStage)})和气象数据，系统建议：<span class="highlight">无需立即灌溉</span>。`;
+                    recommendation += `当前水层处于目标范围${minWater.toFixed(1)}-${maxWater.toFixed(1)}cm内，请保持监测。`;
+                    
+                    // 隐藏进度条
+                    document.getElementById('progress-container').style.display = 'none';
+                    document.getElementById('flow-rate-info').style.display = 'none';
+                }
+                
+                recommendation += `预计未来24小时蒸发量约为 <span class="highlight">${evaporation}mm</span>，建议在明日上午重新评估灌溉需求。`;
+                recommendation += `当前温度${temperature}°C，湿度${humidity}%，风速${windSpeed}m/s，日照${sunshine}小时。`;
+                
+                document.getElementById('recommendation').innerHTML = recommendation;
+                
+                // 更新图表数据
+                const newData = Array.from({length: 7}, (_, i) => {
+                    const base = currentWater;
+                    const variation = Math.sin(i * 0.8) * 0.6 + 0.1 * i;
+                    return Math.max(0, base + variation);
+                });
+                
+                waterChart.data.datasets[0].data = newData;
+                waterChart.update();
+                
+                // 恢复按钮状态
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-calculator"></i> 计算灌溉方案';
+                }, 2000);
+            }
+            
+            function getGrowthStageName(stage) {
+                const names = {
+                    'returning': '返青期',
+                    'tillering': '分蘖期',
+                    'jointing': '拔节期',
+                    'heading': '孕穗开花期',
+                    'milking': '乳熟期',
+                    'ripening': '黄熟期'
+                };
+                return names[stage] || stage;
+            }
+            
+            function simulateIrrigation(startDepth, targetDepth, duration, flowRate) {
+                const progressBar = document.getElementById('progress-bar');
+                const timeRemaining = document.getElementById('time-remaining');
+                const waterInput = document.getElementById('current-water');
+                const waterLevel = document.getElementById('water-level');
+                const flowValue = document.getElementById('flow-rate-value');
+                
+                let progress = 0;
+                const startTime = Date.now();
+                const interval = 100; // 更新间隔(ms)
+                
+                // 更新流速显示
+                flowValue.textContent = flowRate;
+                
+                const animation = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    progress = Math.min(100, (elapsed / (duration * 10)));
+                    
+                    // 更新进度条
+                    progressBar.style.width = `${progress}%`;
+                    
+                    // 更新剩余时间
+                    const remaining = Math.max(0, duration - Math.floor(elapsed / 1000));
+                    timeRemaining.textContent = remaining;
+                    
+                    // 更新水位
+                    const currentDepth = startDepth + (targetDepth - startDepth) * (progress / 100);
+                    waterInput.value = currentDepth.toFixed(1);
+                    
+                    const waterPercent = Math.min(100, Math.max(5, (currentDepth / 10) * 100));
+                    waterLevel.style.height = `${waterPercent}%`;
+                    
+                    // 更新系统状态
+                    const action = targetDepth > startDepth ? "灌溉中..." : "排水中...";
+                    document.getElementById('system-status').innerHTML = `<span class="system-animation">${action}</span>`;
+                    
+                    // 完成时清除定时器
+                    if (progress >= 100) {
+                        clearInterval(animation);
+                        document.getElementById('system-status').innerHTML = "操作完成";
+                        document.getElementById('device-status').textContent = 
+                            "水位传感器运行正常 | 进水阀关闭 | 排水阀关闭";
+                        document.querySelector('.inlet-valve').classList.remove('active');
+                        document.querySelector('.outlet-valve').classList.remove('active');
+                        document.getElementById('irrigation-flow').style.display = 'none';
+                        
+                        // 更新UI状态
+                        calculateIrrigation();
+                    }
+                }, interval);
+            }
+        });
+    </script>
+</body>
+</html>
